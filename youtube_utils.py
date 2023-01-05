@@ -2,8 +2,6 @@ import os
 import youtube_dl
 
 from youtube_search import YoutubeSearch
-from pytube import YouTube
-from pathlib import Path
 
 
 def search_for_theme(query, convert_to_theme=True):

@@ -355,30 +355,36 @@ def sync_list_with_jellyfin_playlist(client=None, title=None, inputList=None):
 		print(response)
 
 
-def get_medias(client: JellyfinClient=None):
+def get_medias(client: JellyfinClient = None):
 	"""
 	Recover all medias (movies, tv shows, etc.) from a jellyfin instance
 
 	:param client: A jellyfin instance
 	:return:
 	"""
+
 	if client is None:
 		return
 
-	print(client.jellyfin.get_media_folders())
+	print(client.jellyfin.items())
+	print(client.jellyfin.user_items())
+	print(client.jellyfin.shows())
+	print(client.jellyfin.videos())
+	print()
+
+	output = client.jellyfin.get_media_folders()
+	print(output)
+
+	for i in range(len(output["Items"])):
+		id = output["Items"][i]["Id"]
+		print(client.jellyfin.get_item(id))
+
+	# print(client.jellyfin.get_item(output))
 	print("\n-----------------------------\n")
-	print(client.jellyfin.get_item())
+	# print(client.jellyfin.get_items(output)) # Give the path (among others)
 	print("\n-----------------------------\n")
-	print(client.jellyfin.get_items())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.search_media_items())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.get_intros())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.get_additional_parts())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.get_items_theme_video())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.get_items_theme_song())
-	print("\n-----------------------------\n")
-	print(client.jellyfin.get_themes())
+	# print(client.jellyfin.get_items_theme_song(output))  # To ignore items with an already defined theme
+	# print(client.items())
+	# print(client.user_items())
+	# print(client.shows())
+	# print(client.videos())
