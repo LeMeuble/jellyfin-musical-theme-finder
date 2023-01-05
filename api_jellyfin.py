@@ -365,4 +365,20 @@ def get_medias(client: JellyfinClient=None):
 	if client is None:
 		return
 
-	client.jellyfin.get_media_folders()
+	print(client.jellyfin.get_media_folders())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_item())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_items())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.search_media_items())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_intros())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_additional_parts())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_items_theme_video())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_items_theme_song())
+	print("\n-----------------------------\n")
+	print(client.jellyfin.get_themes())
