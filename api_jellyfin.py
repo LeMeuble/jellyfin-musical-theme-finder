@@ -2,6 +2,7 @@
 Original source code from :
 https://github.com/mueslimak3r/jellyfin-playlist-maker-from-tmdb/blob/main/api_jellyfin.py
 """
+import youtube_utils
 
 '''
 Big thanks to the jellyfin/jellyfin-mpv-shim devs for most of the code in this file!
@@ -25,10 +26,10 @@ from jellyfin_apiclient_python.connection_manager import CONNECTION_STATE
 from getpass import getpass
 from typing import Optional
 
-APP_NAME = "jellyfin-python-test"
-USER_APP_NAME = "jellyfin-python-test"
-CLIENT_VERSION = "0.0.1"
-USER_AGENT = "jellyfin-python-test/%s" % CLIENT_VERSION
+APP_NAME = "Jellyfin musical theme finder"
+USER_APP_NAME = "Jellyfin musical theme finder"
+CLIENT_VERSION = "1.0"
+USER_AGENT = "jellyfin-musical-theme-finder/%s" % CLIENT_VERSION
 CAPABILITIES = {
 	"PlayableMediaTypes": "",
 	"SupportsMediaControl": False,
@@ -355,7 +356,7 @@ def sync_list_with_jellyfin_playlist(client=None, title=None, inputList=None):
 		print(response)
 
 
-def get_medias(client: JellyfinClient = None):
+def get_medias_without_theme(client: JellyfinClient = None):
 	"""
 	Recover all medias (movies, tv shows, etc.) from a jellyfin instance
 
@@ -366,25 +367,84 @@ def get_medias(client: JellyfinClient = None):
 	if client is None:
 		return
 
-	print(client.jellyfin.items())
-	print(client.jellyfin.user_items())
-	print(client.jellyfin.shows())
-	print(client.jellyfin.videos())
-	print()
+	output = []
 
-	output = client.jellyfin.get_media_folders()
-	print(output)
+	# print(client.jellyfin.items())
+	movies = client.jellyfin.user_items(params={
+		'Recursive': True,
+		'hasThemeSong': False,
+		'includeItemTypes': ("Movie")
+	})
 
-	for i in range(len(output["Items"])):
-		id = output["Items"][i]["Id"]
-		print(client.jellyfin.get_item(id))
+	"""for item in outuput['Items']:
 
-	# print(client.jellyfin.get_item(output))
-	print("\n-----------------------------\n")
-	# print(client.jellyfin.get_items(output)) # Give the path (among others)
-	print("\n-----------------------------\n")
-	# print(client.jellyfin.get_items_theme_song(output))  # To ignore items with an already defined theme
-	# print(client.items())
-	# print(client.user_items())
-	# print(client.shows())
-	# print(client.videos())
+		movie = client.jellyfin.get_item(item["Id"])
+
+		print(os.path.dirname(movie["MediaSources"][0]["Path"]))
+		# print(client.jellyfin.get_item(item["Id"]))"""
+
+	series = client.jellyfin.user_items(params={
+		'Recursive': True,
+		'hasThemeSong': False,
+		'includeItemTypes': ("Series")
+	})
+
+	output.extend(movies["Items"])
+	output.extend(series["Items"])
+
+	return output
+
+
+def download_themes(client: JellyfinClient = None, medias=None, pause_between_downloads=0):
+
+	if client is None or medias is None:
+		return
+
+	if not isinstance(pause_between_downloads, int):
+		raise ValueError("pause_between_downloads must be an int")
+
+	if pause_between_downloads < 0:
+		raise ValueError("pause_between_downloads must be greater than 0")
+
+	for item in medias:
+		print()
+
+		name = item["Name"]
+		print(f"Downloading theme for : {name}")
+		media = client.jellyfin.get_item(item["Id"])
+
+		try:
+			path = os.path.dirname(media["MediaSources"][0]["Path"])
+			url = youtube_utils.search_for_theme(name)
+
+			if url == "":
+				continue
+
+			print(f"The file will be stored here : {path}")
+
+			if pause_between_downloads > 0:
+				time.sleep(pause_between_downloads)
+
+			filename = youtube_utils.youtube2mp3(url)
+			os.rename(filename, f"{path}/theme.mp3")
+
+		except KeyError:
+
+			media = client.jellyfin.get_item(item["Id"])
+			path = media["Path"]
+			print(f"Error, downloading show theme for : {name}")
+			print(f"The file will be stored here : {path}")
+			url = youtube_utils.search_for_theme(name)
+
+			if url == "":
+				continue
+
+			if pause_between_downloads > 0:
+				time.sleep(pause_between_downloads)
+
+			filename = youtube_utils.youtube2mp3(url, path)
+			os.rename(filename, f"{path}/theme.mp3")
+
+		except:
+			continue
+

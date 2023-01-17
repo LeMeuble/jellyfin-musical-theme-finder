@@ -4,7 +4,7 @@ import youtube_dl
 from youtube_search import YoutubeSearch
 
 
-def search_for_theme(query, convert_to_theme=True):
+def search_for_theme(query, convert_to_theme=True, duration_max=5):
     """
     Search for the theme of a specified input (movie, tv show...)
 
@@ -22,9 +22,18 @@ def search_for_theme(query, convert_to_theme=True):
 
             query += " theme"
 
-    results = YoutubeSearch(query, max_results=1).to_dict()
+    results = YoutubeSearch(query, max_results=10).to_dict()
 
-    return results[0]
+    for videos in results:
+        duration = videos['duration'].split(":")
+
+        if len(duration) == 3:
+            continue
+        elif len(duration) == 2:
+            if int(duration[0]) <= duration_max:
+                return videos['id']
+
+    return ""
 
 
 def youtube2mp3(url=None, output_directory=""):
@@ -36,8 +45,18 @@ def youtube2mp3(url=None, output_directory=""):
     :return: None
     """
 
+    if url is None:
+        raise ValueError("Please enter an url")
+
+    if not isinstance(url, str):
+        raise ValueError("URL must be a string")
+
+    if not url.startswith("www.youtube.com/watch?v="):
+        url = "www.youtube.com/watch?v=" + url
+
     video_info = youtube_dl.YoutubeDL().extract_info(url=url, download=False)
-    filename = f"{video_info['title']}mp3"
+    filename = f"{video_info['title'].replace('/', '')}.mp3"
+    print(f"The filename will be : {filename} (called from youtube2mp3)")
     options = {
         'format': 'bestaudio/best',
         'keepvideo': False,
@@ -52,3 +71,6 @@ def youtube2mp3(url=None, output_directory=""):
     else:
         print(f'ERROR: {video_info["title"]} could not be downloaded!')
 
+    print()
+
+    return filename

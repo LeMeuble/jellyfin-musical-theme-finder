@@ -16,5 +16,8 @@ server_password = input("Enter your password : ")
 clientManager = api_jellyfin.clientManager
 client = clientManager.login(server_url, server_username, server_password)
 
-api_jellyfin.get_medias(client)
+medias = api_jellyfin.get_medias_without_theme(client)
+
+api_jellyfin.download_themes(client, medias, 5)
+
 print("Program finished")
